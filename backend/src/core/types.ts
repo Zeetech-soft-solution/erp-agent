@@ -72,6 +72,10 @@ export interface LLMMessage {
   content: string;
   tool_call_id?: string;
   name?: string;
+  // Present on an "assistant" message that made tool calls this turn —
+  // provider-agnostic; each LLMProvider translates this into its own
+  // wire format (see openaiProvider.ts) when replaying history back.
+  tool_calls?: LLMToolCall[];
 }
 
 export interface LLMResponse {

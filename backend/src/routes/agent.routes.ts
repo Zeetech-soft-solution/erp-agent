@@ -7,6 +7,7 @@ import { vectorContextProvider } from "../providers/context/vectorContextProvide
 import { OpenAIProvider } from "../providers/llm/openaiProvider";
 import { PostgresInteractionLogger } from "../core/interactionLogger";
 import { listAllowedTools } from "../core/gateway";
+import { asyncHandler } from "../core/asyncHandler";
 
 const engine = new ReasoningEngine(
   new OpenAIProvider(),
@@ -17,13 +18,13 @@ const engine = new ReasoningEngine(
 const router = Router();
 router.use(requireAuth);
 
-router.post("/prompt", async (req: AuthedRequest, res) => {
+router.post("/prompt", asyncHandler(async (req: AuthedRequest, res) => {
   const { prompt } = req.body;
   if (!prompt) return res.status(400).json({ error: "prompt is required" });
   const response = await engine.run(req.session!, prompt);
   sessionCacheProvider.addTurn(req.session!.sub, { prompt, summary: response.message.slice(0, 300) });
   res.json(response);
-});
+}));
 
 router.get("/capabilities", (req: AuthedRequest, res) => {
   const tools = listAllowedTools(req.session!);

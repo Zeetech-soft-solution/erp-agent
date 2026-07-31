@@ -21,4 +21,12 @@ app.use("/api/admin", adminRoutes);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
+// Last-resort net for anything asyncHandler-wrapped routes forward via
+// next(err) — a broken LLM/ERPNext call or DB error should fail that one
+// request, never bring the whole server down for every other user.
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error("[unhandled request error]", err);
+  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+});
+
 app.listen(appConfig.port, () => console.log(`ERP Agent backend running on :${appConfig.port}`));

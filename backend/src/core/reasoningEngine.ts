@@ -46,13 +46,17 @@ export class ReasoningEngine {
         break;
       }
 
+      // One assistant message carries ALL of this turn's tool_calls — it
+      // must precede their "tool" result messages, or the provider's API
+      // rejects the result messages as orphaned (no matching prior call).
+      messages.push({ role: "assistant", content: response.content || "", tool_calls: response.tool_calls });
+
       for (const call of response.tool_calls) {
         toolsUsed.push(call.name);
         modulesUsed.add(call.name.split(".")[0]);
         try {
           const result = await callTool(session, call.name, call.arguments);
           lastData = result;
-          messages.push({ role: "assistant", content: "", name: call.name, tool_call_id: call.id });
           messages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: call.id, name: call.name });
         } catch (err) {
           const errMsg = err instanceof ToolNotAllowedError ? err.message : "Tool execution failed";

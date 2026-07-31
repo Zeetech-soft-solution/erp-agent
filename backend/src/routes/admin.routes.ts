@@ -6,13 +6,14 @@ import { moduleRegistry } from "../core/moduleRegistry";
 import { userCredentialStore } from "../core/userCredentialStore";
 import { systemConnector } from "../config/system.config";
 import { sessionStore } from "../core/sessionStore";
+import { asyncHandler } from "../core/asyncHandler";
 
 const router = Router();
 router.use(requireAuth, requireAdmin);
 
-router.get("/settings", async (_req, res) => {
+router.get("/settings", asyncHandler(async (_req, res) => {
   res.json({ settings: await settingsService.list() });
-});
+}));
 
 router.put("/settings/:key", async (req: AuthedRequest, res) => {
   try {
@@ -40,9 +41,9 @@ router.get("/status", (_req, res) => {
  * returned in any response after this point — list only ever shows
  * metadata (who provisioned it, when), never the secret itself.
  */
-router.get("/users", async (_req, res) => {
+router.get("/users", asyncHandler(async (_req, res) => {
   res.json({ users: await userCredentialStore.list() });
-});
+}));
 
 router.put("/users/:email/credential", async (req: AuthedRequest, res) => {
   const { email } = req.params;
@@ -59,10 +60,10 @@ router.put("/users/:email/credential", async (req: AuthedRequest, res) => {
   }
 });
 
-router.delete("/users/:email/credential", async (req: AuthedRequest, res) => {
+router.delete("/users/:email/credential", asyncHandler(async (req: AuthedRequest, res) => {
   await userCredentialStore.revoke(req.params.email);
   sessionStore.destroyAllForUser(req.params.email);
   res.json({ ok: true });
-});
+}));
 
 export default router;
