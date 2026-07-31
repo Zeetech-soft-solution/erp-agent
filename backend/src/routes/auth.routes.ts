@@ -1,0 +1,37 @@
+import { Router } from "express";
+import { loginWithPassword, loginWithApiKey } from "../auth/erpnextAuth";
+import { requireAuth, AuthedRequest } from "../auth/middleware";
+import { sessionStore } from "../core/sessionStore";
+
+const router = Router();
+
+/**
+ * Accepts either { email, password } OR { email, apiKey, apiSecret }.
+ * Both end in the same place — a Session carrying a UserCredential
+ * that impersonates this specific person on every subsequent call.
+ */
+router.post("/login", async (req, res) => {
+  const { email, password, apiKey, apiSecret } = req.body;
+  if (!email) return res.status(400).json({ error: "email is required" });
+
+  try {
+    const result = password
+      ? await loginWithPassword(email, password)
+      : apiKey && apiSecret
+      ? await loginWithApiKey(email, apiKey, apiSecret)
+      : null;
+
+    if (!result) return res.status(400).json({ error: "Provide either password, or apiKey + apiSecret" });
+
+    res.json({ token: result.token, roles: result.session.erpnext_roles, allowed_tools: result.session.allowed_tools });
+  } catch (err: any) {
+    res.status(401).json({ error: err.message || "Login failed" });
+  }
+});
+
+router.post("/logout", requireAuth, (req: AuthedRequest, res) => {
+  sessionStore.destroy(req.sessionId!);
+  res.json({ ok: true });
+});
+
+export default router;
