@@ -6,7 +6,10 @@ import { appConfig } from "../config/app.config";
  * for why the real UserCredential deliberately never goes in here.
  */
 export function issueAgentToken(sessionId: string): string {
-  return jwt.sign({ sessionId }, appConfig.jwt.secret, { expiresIn: appConfig.jwt.expiresIn });
+  // expiresIn's stricter template-literal type (e.g. "8h") vs our plain
+  // env-sourced string is a typing-only mismatch — the runtime value is
+  // still valid input for jsonwebtoken.
+  return jwt.sign({ sessionId }, appConfig.jwt.secret, { expiresIn: appConfig.jwt.expiresIn as jwt.SignOptions["expiresIn"] });
 }
 
 export function verifySessionId(token: string): string {

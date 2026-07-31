@@ -21,7 +21,8 @@ router.post("/:toolName", async (req: AuthedRequest, res) => {
     const data = await callTool(req.session!, req.params.toolName, req.body || {});
     res.json({ data });
   } catch (err: any) {
-    res.status(err.name === "ToolNotAllowedError" ? 403 : 400).json({ error: err.message });
+    const status = err.name === "ToolNotAllowedError" ? 403 : err.status || 400;
+    res.status(status).json({ error: err.message });
   }
 });
 
