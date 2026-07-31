@@ -41,7 +41,7 @@ export function Chat() {
       <header className="agent-header">
         <div className="brand">ERP <span>Agent</span></div>
         <button
-          onClick={async () => { await api.logout().catch(() => {}); api.clearToken(); window.location.href = "/login"; }}
+          onClick={async () => { await api.logout().catch(() => {}); api.clearToken(); window.location.href = `${import.meta.env.BASE_URL}login`; }}
           style={{ background: "none", border: "none", color: "var(--ink-secondary)", fontSize: 12, cursor: "pointer" }}
         >
           Sign out
