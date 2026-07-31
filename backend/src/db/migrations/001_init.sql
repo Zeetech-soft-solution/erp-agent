@@ -20,7 +20,7 @@ create index if not exists context_embeddings_ivfflat
 -- of every prompt -> tool decision -> outcome the system has made.
 create table if not exists interaction_log (
   id                     bigserial primary key,
-  session_user           text not null,
+  actor_email            text not null,
   roles                  text[] not null,
   prompt                 text not null,
   context_sources_used   text[] not null default '{}',
@@ -31,5 +31,5 @@ create table if not exists interaction_log (
   feedback               smallint,          -- null / -1 / +1, added later via UI
   created_at             timestamptz not null default now()
 );
-create index if not exists interaction_log_user_idx on interaction_log (session_user);
+create index if not exists interaction_log_user_idx on interaction_log (actor_email);
 create index if not exists interaction_log_created_idx on interaction_log (created_at);

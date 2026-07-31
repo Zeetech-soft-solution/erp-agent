@@ -16,10 +16,10 @@ export class PostgresInteractionLogger implements InteractionLogger {
     if (!this.pool) return; // safe no-op until DATABASE_URL is configured
     await this.pool.query(
       `insert into interaction_log
-        (session_user, roles, prompt, context_sources_used, tool_calls, response_type, render_kind, latency_ms, created_at)
+        (actor_email, roles, prompt, context_sources_used, tool_calls, response_type, render_kind, latency_ms, created_at)
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
       [
-        record.session_user,
+        record.actor_email,
         record.roles,
         record.prompt,
         record.context_sources_used,

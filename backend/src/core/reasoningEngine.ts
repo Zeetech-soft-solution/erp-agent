@@ -65,7 +65,7 @@ export class ReasoningEngine {
     const response = this.buildResponse(message, lastData, displayIntent, toolsUsed, Array.from(modulesUsed), session);
 
     await this.logger?.log({
-      session_user: session.sub,
+      actor_email: session.sub,
       roles: session.erpnext_roles,
       prompt,
       context_sources_used: contextChunks.map((c) => c.label),

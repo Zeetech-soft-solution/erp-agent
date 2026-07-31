@@ -110,7 +110,7 @@ export type RendererFn = (data: any, intent: DisplayIntent) => string;
 
 // ---- Interaction logging (training data plan — see docs/TRAINING_PLAN.md) ----
 export interface InteractionRecord {
-  session_user: string;
+  actor_email: string;
   roles: string[];
   prompt: string;
   context_sources_used: string[];   // labels only, never full raw text
