@@ -17,7 +17,7 @@ export function Chat() {
   const [sending, setSending] = useState(false);
 
   async function send(prompt: string) {
-    const id = crypto.randomUUID();
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     setTurns((prev) => [...prev, { id, prompt, pending: true }]);
     setSending(true);
     try {
