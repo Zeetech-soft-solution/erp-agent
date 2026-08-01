@@ -10,10 +10,11 @@ import { listAllowedTools } from "../core/gateway";
 import { asyncHandler } from "../core/asyncHandler";
 import { alertStore } from "../core/alertStore";
 
+const interactionLogger = new PostgresInteractionLogger();
 const engine = new ReasoningEngine(
   new OpenAIProvider(),
   new ContextAssembler([sessionCacheProvider, vectorContextProvider]),
-  new PostgresInteractionLogger()
+  interactionLogger
 );
 
 const router = Router();
@@ -25,6 +26,16 @@ router.post("/prompt", asyncHandler(async (req: AuthedRequest, res) => {
   const response = await engine.run(req.session!, prompt);
   sessionCacheProvider.addTurn(req.session!.sub, { prompt, summary: response.message.slice(0, 300) });
   res.json(response);
+}));
+
+router.post("/feedback/:interactionId", asyncHandler(async (req: AuthedRequest, res) => {
+  const { feedback } = req.body;
+  if (feedback !== 1 && feedback !== -1 && feedback !== null) {
+    return res.status(400).json({ error: "feedback must be 1, -1, or null" });
+  }
+  const ok = await interactionLogger.setFeedback(req.params.interactionId, req.session!.sub, feedback);
+  if (!ok) return res.status(404).json({ error: "Interaction not found" });
+  res.json({ ok: true });
 }));
 
 router.get("/alerts", (req: AuthedRequest, res) => {

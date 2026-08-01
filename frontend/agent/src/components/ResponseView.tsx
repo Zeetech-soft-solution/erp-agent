@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { AgentResponse } from "../api/types";
+import { api } from "../api/client";
 
 /**
  * Renders the AgentResponse contract. "report" gets the server-rendered,
@@ -35,7 +36,56 @@ export function ResponseView({ response, onNextStep }: { response: AgentResponse
         {response.meta.tools_used.map((t) => (
           <span className="meta-chip" key={t}>{t}</span>
         ))}
+        {response.interaction_id && <FeedbackControl interactionId={response.interaction_id} />}
       </div>
     </div>
+  );
+}
+
+/**
+ * Phase 1 of docs/TRAINING_PLAN.md: turns raw interaction_log rows into
+ * labeled +1/-1 examples. Optimistic UI — re-clicking the active choice
+ * clears it back to null (a mis-click shouldn't require a page reload
+ * to undo). Silently reverts on network failure since this is low-stakes
+ * feedback, not a form submission worth blocking the chat over.
+ */
+function FeedbackControl({ interactionId }: { interactionId: string }) {
+  const [feedback, setFeedback] = useState<1 | -1 | null>(null);
+  const [sending, setSending] = useState(false);
+
+  async function rate(value: 1 | -1) {
+    if (sending) return;
+    const next = feedback === value ? null : value;
+    const prev = feedback;
+    setFeedback(next);
+    setSending(true);
+    try {
+      await api.sendFeedback(interactionId, next);
+    } catch {
+      setFeedback(prev);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <span className="feedback-control">
+      <button
+        type="button"
+        className={`feedback-btn${feedback === 1 ? " active" : ""}`}
+        aria-label="Good response"
+        onClick={() => rate(1)}
+      >
+        👍
+      </button>
+      <button
+        type="button"
+        className={`feedback-btn${feedback === -1 ? " active" : ""}`}
+        aria-label="Bad response"
+        onClick={() => rate(-1)}
+      >
+        👎
+      </button>
+    </span>
   );
 }

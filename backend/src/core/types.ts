@@ -108,6 +108,10 @@ export interface AgentResponse {
   data?: any;
   html?: string;                 // server-rendered, sanitized — "report" only
   document?: { name: string; url?: string; content?: string };
+  // The interaction_log row id this turn was recorded under, so the UI
+  // can round-trip a thumbs up/down back via POST /api/agent/feedback/:id.
+  // Absent when logging is a no-op (no DATABASE_URL).
+  interaction_id?: string;
   meta: {
     modules_used: string[];
     tools_used: string[];
@@ -132,7 +136,13 @@ export interface InteractionRecord {
 }
 
 export interface InteractionLogger {
-  log(record: InteractionRecord): Promise<void>;
+  /** Returns the logged row's id (for the feedback round-trip below), or
+   *  null when logging is a no-op (no DATABASE_URL configured). */
+  log(record: InteractionRecord): Promise<string | null>;
+  /** Phase 1 of the training plan: attach a thumbs up/down to a previously
+   *  logged interaction. Scoped to actorEmail so a user can only rate
+   *  their own turns. No-op (resolves false) without DATABASE_URL. */
+  setFeedback(id: string, actorEmail: string, feedback: 1 | -1 | null): Promise<boolean>;
 }
 
 // ---- ERP Connector — THE boundary that makes ERPNext today / SAP

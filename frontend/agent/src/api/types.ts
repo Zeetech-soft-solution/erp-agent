@@ -9,6 +9,7 @@ export interface AgentResponse {
   data?: any;
   html?: string;
   document?: { name: string; url?: string; content?: string };
+  interaction_id?: string;
   meta: {
     modules_used: string[];
     tools_used: string[];

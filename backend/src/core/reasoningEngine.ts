@@ -70,7 +70,7 @@ export class ReasoningEngine {
     const { message, displayIntent } = extractDisplayIntent(finalText);
     const response = this.buildResponse(message, lastData, displayIntent, toolsUsed, Array.from(modulesUsed), session);
 
-    await this.logger?.log({
+    const interactionId = await this.logger?.log({
       actor_email: session.sub,
       roles: session.erpnext_roles,
       prompt,
@@ -81,6 +81,7 @@ export class ReasoningEngine {
       latency_ms: Date.now() - startedAt,
       created_at: new Date().toISOString(),
     });
+    if (interactionId) response.interaction_id = interactionId;
 
     return response;
   }

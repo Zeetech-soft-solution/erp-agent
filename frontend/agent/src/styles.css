@@ -113,6 +113,13 @@ body {
   font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted);
   border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px;
 }
+.feedback-control { display: inline-flex; gap: 2px; margin-left: auto; }
+.feedback-btn {
+  background: none; border: 1px solid transparent; border-radius: 999px; cursor: pointer;
+  font-size: 12px; line-height: 1; padding: 3px 6px; opacity: 0.55; transition: opacity 0.15s;
+}
+.feedback-btn:hover { opacity: 1; }
+.feedback-btn.active { opacity: 1; border-color: var(--border); background: var(--accent-bg); }
 
 /* server-rendered report HTML lives inside this wrapper */
 .agent-report-html { margin-top: 8px; }

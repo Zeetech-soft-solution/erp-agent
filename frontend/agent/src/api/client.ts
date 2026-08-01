@@ -28,6 +28,8 @@ export const api = {
     request("/api/auth/login", { method: "POST", body: JSON.stringify({ email, apiKey, apiSecret }) }),
   logout: () => request("/api/auth/logout", { method: "POST" }),
   prompt: (prompt: string) => request("/api/agent/prompt", { method: "POST", body: JSON.stringify({ prompt }) }),
+  sendFeedback: (interactionId: string, feedback: 1 | -1 | null) =>
+    request(`/api/agent/feedback/${interactionId}`, { method: "POST", body: JSON.stringify({ feedback }) }),
   capabilities: () => request("/api/agent/capabilities"),
   alerts: () => request("/api/agent/alerts"),
   setToken: (token: string) => localStorage.setItem("erp_agent_token", token),
