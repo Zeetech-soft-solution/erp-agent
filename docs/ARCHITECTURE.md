@@ -501,17 +501,37 @@ something the LLM itself calls.
 - `admin_audit_log` records every settings change (who, what, before/after).
 - `frontend/admin/` — React + Vite + TS, desktop-only (`min-width: 1024px`
   by design, no responsive breakpoints — this is an internal tool, not
-  a public surface). Currently: login + Global Settings page + live
-  module-status strip. Add a new admin section the same way `Settings.tsx`
-  was added: a page component + a `<Route>` in `App.tsx` + a `<NavLink>`
-  in `Sidebar.tsx`.
+  a public surface). Currently: login + Global Settings + User Credentials +
+  Policy Documents pages + live module-status strip. Add a new admin section
+  the same way `Settings.tsx` was added: a page component + a `<Route>` in
+  `App.tsx` + a `<NavLink>` in `Sidebar.tsx`.
+
+### Policy documents (RAG over admin-uploaded business policy)
+
+`core/policyDocumentStore.ts` + `routes/policyDocuments.routes.ts` let an
+admin upload a `.docx` of business policy / workflow rules from
+`frontend/admin/`'s Policy Documents page. Text is extracted with
+`mammoth`, chunked (~1200 chars, paragraph-aware), embedded via whichever
+`Embedder` `bootstrap.ts` wired into `vectorContextProvider`
+(`providers/embeddings/openaiEmbedder.ts` today — same
+swap-one-class-and-nothing-else discipline as `LLMProvider`), and stored
+in `context_embeddings` with `owner_scope = 'global'`, tagged back to a
+first-class `policy_documents` row via `policy_document_id`. Editing or
+reactivating a document deletes and re-embeds its chunks — never leaves
+stale embeddings behind. This is also what finally wires a real
+`Embedder` into `vectorContextProvider`, which previously had the
+interface but nothing calling `setEmbedder()` — so it's a live no-op
+until `EMBEDDINGS_API_KEY`/`LLM_API_KEY` is set.
 
 ## Database summary
 
 One self-hosted Postgres instance (with the `vector` extension) backs
 everything agent-side — never touches ERPNext's own database:
 - `context_embeddings` — warm-tier semantic search (pgvector)
-- `interaction_log` — every reasoning-engine run, training-data source
+- `interaction_log` / `rule_evaluations` — every reasoning-engine run and
+  business-rule check, training-data source (see `docs/TRAINING_PLAN.md`)
+- `policy_documents` — admin-uploaded policy/reference docs backing the
+  `context_embeddings` rows they were chunked into
 - `settings` / `admin_audit_log` — admin-editable operational config
 
 ## Setup
@@ -519,7 +539,8 @@ everything agent-side — never touches ERPNext's own database:
 1. `cd backend && npm install`
 2. `cp .env.example .env` and fill in ERPNext URL/key, LLM key, `DATABASE_URL`, `ADMIN_ROLES`,
    and `CREDENTIAL_ENCRYPTION_KEY` (generate with the node command in the `.env.example` comment)
-3. Run `db/migrations/001_init.sql`, `002_settings.sql`, then `003_user_credentials.sql` against your Postgres (with pgvector installed)
+3. Run every file in `db/migrations/` against your Postgres (with pgvector installed), in
+   filename order (`001_init.sql` ... `005_policy_documents.sql`)
 4. `npm run dev`
 5. Create ERPNext users with different roles (Sales User / Sales Manager /
    System Manager) and confirm `/api/auth/login` returns different `allowed_tools`

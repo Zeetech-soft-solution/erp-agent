@@ -13,6 +13,8 @@ import { buildReportModules } from "./core/reportModuleFactory";
 import { REPORT_CONFIGS } from "./config/reports.config";
 import { businessRuleEngine } from "./core/businessRuleEngine";
 import { RULE_CONFIGS } from "./config/rules.config";
+import { vectorContextProvider } from "./providers/context/vectorContextProvider";
+import { OpenAIEmbedder } from "./providers/embeddings/openaiEmbedder";
 import "./renderers/tableRenderer"; // side-effect: registers renderers
 
 /**
@@ -30,7 +32,16 @@ const AVAILABLE_MODULES: Record<string, any> = {
   email: emailModule,
 };
 
+// Shared with core/policyDocumentStore.ts so admin-uploaded policy
+// documents embed into the same vector space prompts are matched
+// against. Safe no-op (null) without EMBEDDINGS_API_KEY/LLM_API_KEY —
+// same "no-op until configured" discipline as every other DB-backed
+// service here.
+export const embedder = appConfig.embeddings.apiKey ? new OpenAIEmbedder() : null;
+
 export function bootstrapModules() {
+  if (embedder) vectorContextProvider.setEmbedder(embedder);
+
   for (const name of appConfig.activeModules) {
     const mod = AVAILABLE_MODULES[name.trim()];
     if (!mod) {

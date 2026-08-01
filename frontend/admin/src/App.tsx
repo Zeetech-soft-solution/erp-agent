@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login";
 import { Settings } from "./pages/Settings";
 import { Users } from "./pages/Users";
+import { PolicyDocuments } from "./pages/PolicyDocuments";
 import { Sidebar } from "./components/Sidebar";
 import { api } from "./api/client";
 
@@ -45,6 +46,16 @@ export default function App() {
             <RequireAuth>
               <AdminLayout>
                 <Users />
+              </AdminLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/policy-documents"
+          element={
+            <RequireAuth>
+              <AdminLayout>
+                <PolicyDocuments />
               </AdminLayout>
             </RequireAuth>
           }

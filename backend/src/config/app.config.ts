@@ -62,6 +62,18 @@ export const appConfig = {
     totalBudgetChars: Number(process.env.CONTEXT_BUDGET_CHARS || 6000),
   },
 
+  // Embeds prompts (vectorContextProvider) and admin-uploaded policy
+  // documents (policyDocumentStore) into the same pgvector space —
+  // separate from `llm` above since a real deployment may want a
+  // cheaper/different model for embeddings than for chat, but defaults
+  // to reusing the LLM key so the common single-provider case needs no
+  // extra env vars. Safe no-op (see bootstrap.ts) without an API key.
+  embeddings: {
+    apiKey: process.env.EMBEDDINGS_API_KEY || process.env.LLM_API_KEY || "",
+    baseUrl: process.env.EMBEDDINGS_BASE_URL || "https://api.openai.com/v1",
+    model: process.env.EMBEDDINGS_MODEL || "text-embedding-3-small", // 1536 dims — matches context_embeddings.embedding
+  },
+
   db: {
     postgresUrl: process.env.DATABASE_URL || "",
   },
