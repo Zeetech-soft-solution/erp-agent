@@ -1,5 +1,5 @@
 import { Session, LLMMessage, LLMProvider, AgentResponse, DisplayIntent } from "./types";
-import { callTool, listAllowedTools, ToolNotAllowedError } from "./gateway";
+import { callTool, listAllowedTools } from "./gateway";
 import { ContextAssembler } from "./contextAssembler";
 import { rendererRegistry } from "./rendererRegistry";
 import { appConfig } from "../config/app.config";
@@ -59,7 +59,7 @@ export class ReasoningEngine {
           lastData = result;
           messages.push({ role: "tool", content: JSON.stringify(result), tool_call_id: call.id, name: call.name });
         } catch (err) {
-          const errMsg = err instanceof ToolNotAllowedError ? err.message : "Tool execution failed";
+          const errMsg = err instanceof Error ? err.message : "Tool execution failed";
           messages.push({ role: "tool", content: JSON.stringify({ error: errMsg }), tool_call_id: call.id, name: call.name });
         }
       }
