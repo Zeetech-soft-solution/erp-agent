@@ -13,4 +13,8 @@ export const ACCOUNTING_MAP: ErpNextEntityMapModule = {
     doctype: "Account",
     fieldMap: { id: "name", display_name: "account_name", type: "account_type" },
   },
+  cost_center: {
+    doctype: "Cost Center",
+    fieldMap: { id: "name", display_name: "cost_center_name", is_group: "is_group" },
+  },
 };

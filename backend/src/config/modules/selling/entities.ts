@@ -1,4 +1,4 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
 /** Selling module — quoting through invoicing a customer. */
 export const SELLING_ENTITIES: EntityConfig[] = [

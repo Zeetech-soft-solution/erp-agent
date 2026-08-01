@@ -34,6 +34,7 @@ export class ReasoningEngine {
     ];
 
     const toolsUsed: string[] = [];
+    const toolCallsLogged: { name: string; args: any }[] = [];
     const modulesUsed = new Set<string>();
     let lastData: any = null;
     let finalText = "";
@@ -53,6 +54,7 @@ export class ReasoningEngine {
 
       for (const call of response.tool_calls) {
         toolsUsed.push(call.name);
+        toolCallsLogged.push({ name: call.name, args: call.arguments });
         modulesUsed.add(call.name.split(".")[0]);
         try {
           const result = await callTool(session, call.name, call.arguments);
@@ -73,7 +75,7 @@ export class ReasoningEngine {
       roles: session.erpnext_roles,
       prompt,
       context_sources_used: contextChunks.map((c) => c.label),
-      tool_calls: toolsUsed.map((name) => ({ name, args: {} })),
+      tool_calls: toolCallsLogged,
       response_type: response.type,
       render_kind: displayIntent?.render,
       latency_ms: Date.now() - startedAt,

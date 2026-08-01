@@ -21,4 +21,16 @@ export interface ChatTurn {
   prompt: string;
   response?: AgentResponse;
   pending?: boolean;
+  isAlert?: boolean;
+}
+
+/** Mirrors backend core/types.ts Alert — a proactive notification (an
+ *  ERPNext webhook today) pushed into chat outside the prompt/response
+ *  flow. */
+export interface Alert {
+  id: string;
+  entityKey: string;
+  recordId: string;
+  message: string;
+  createdAt: string;
 }

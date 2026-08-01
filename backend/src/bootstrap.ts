@@ -11,6 +11,8 @@ import { workflowEngine } from "./core/workflowEngine";
 import { WORKFLOW_CONFIGS } from "./config/workflows.config";
 import { buildReportModules } from "./core/reportModuleFactory";
 import { REPORT_CONFIGS } from "./config/reports.config";
+import { businessRuleEngine } from "./core/businessRuleEngine";
+import { RULE_CONFIGS } from "./config/rules.config";
 import "./renderers/tableRenderer"; // side-effect: registers renderers
 
 /**
@@ -56,6 +58,8 @@ export function bootstrapModules() {
       moduleRegistry.register(mod);
     }
   }
+
+  for (const ruleSet of RULE_CONFIGS) businessRuleEngine.register(ruleSet);
 
   console.log(`[bootstrap] Loaded modules: ${moduleRegistry.getModules().map((m) => m.name).join(", ")}`);
 }

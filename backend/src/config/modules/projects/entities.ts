@@ -1,4 +1,4 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
 /** Projects module. */
 export const PROJECTS_ENTITIES: EntityConfig[] = [
@@ -17,5 +17,13 @@ export const PROJECTS_ENTITIES: EntityConfig[] = [
     canonicalFields: ["id", "project", "subject", "status", "assigned_to"],
     createFields: ["project", "subject"],
     description: "Project tasks",
+  },
+  {
+    entityKey: "timesheet",
+    module: "projects",
+    toolPrefix: "timesheet",
+    canonicalFields: ["id", "employee", "status", "total_hours"],
+    operations: ["list", "get"],
+    description: "Logged time against a project/task",
   },
 ];

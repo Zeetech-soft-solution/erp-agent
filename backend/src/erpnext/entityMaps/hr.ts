@@ -13,4 +13,12 @@ export const HR_MAP: ErpNextEntityMapModule = {
     doctype: "Attendance",
     fieldMap: { id: "name", employee: "employee", date: "attendance_date", status: "status" },
   },
+  salary_slip: {
+    doctype: "Salary Slip",
+    fieldMap: { id: "name", employee: "employee", status: "status", net_pay: "net_pay", start_date: "start_date", end_date: "end_date" },
+  },
+  job_opening: {
+    doctype: "Job Opening",
+    fieldMap: { id: "name", display_name: "job_title", department: "department", status: "status" },
+  },
 };

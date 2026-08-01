@@ -7,17 +7,23 @@ import authRoutes from "./routes/auth.routes";
 import toolsRoutes from "./routes/tools.routes";
 import agentRoutes from "./routes/agent.routes";
 import adminRoutes from "./routes/admin.routes";
+import webhooksRoutes from "./routes/webhooks.routes";
 
 bootstrapModules();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// The `verify` callback stashes the raw body buffer onto the request —
+// needed only by routes/webhooks.routes.ts to check ERPNext's HMAC
+// signature (which is computed over the exact bytes sent, not the
+// re-serialized parsed object). Every other route is unaffected.
+app.use(express.json({ verify: (req: any, _res, buf) => { req.rawBody = buf; } }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tools", toolsRoutes);
 app.use("/api/agent", agentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/webhooks", webhooksRoutes);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 

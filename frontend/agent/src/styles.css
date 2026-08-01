@@ -8,6 +8,8 @@
   --accent-bg: #E4EFEC;
   --user-bubble: #1B1E1C;
   --border: #E3E4DF;
+  --alert: #B45309;
+  --alert-bg: #FEF3E2;
   --radius: 10px;
 
   --font-display: "Space Grotesk", sans-serif;
@@ -99,6 +101,10 @@ body {
   border-radius: 4px 14px 14px 14px; font-size: 14px; line-height: 1.55;
 }
 .bubble-agent.pending { color: var(--ink-muted); font-style: italic; }
+.bubble-alert {
+  background: var(--alert-bg); border: 1px solid var(--alert); color: var(--alert); padding: 10px 14px;
+  border-radius: 4px 14px 14px 14px; font-size: 14px; font-weight: 500; max-width: 480px;
+}
 
 .meta-row {
   display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;

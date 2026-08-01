@@ -13,4 +13,12 @@ export const STOCK_MAP: ErpNextEntityMapModule = {
     doctype: "Delivery Note",
     fieldMap: { id: "name", customer: "customer", status: "status", date: "posting_date" },
   },
+  stock_entry: {
+    doctype: "Stock Entry",
+    fieldMap: { id: "name", entry_type: "stock_entry_type", status: "status", date: "posting_date" },
+  },
+  material_request: {
+    doctype: "Material Request",
+    fieldMap: { id: "name", request_type: "material_request_type", status: "status", date: "transaction_date" },
+  },
 };

@@ -9,4 +9,8 @@ export const PROJECTS_MAP: ErpNextEntityMapModule = {
     doctype: "Task",
     fieldMap: { id: "name", project: "project", subject: "subject", status: "status", assigned_to: "_assign" },
   },
+  timesheet: {
+    doctype: "Timesheet",
+    fieldMap: { id: "name", employee: "employee", status: "status", total_hours: "total_hours" },
+  },
 };

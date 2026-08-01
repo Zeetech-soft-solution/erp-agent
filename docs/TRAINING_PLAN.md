@@ -6,9 +6,17 @@ run) through to eventually replacing the external LLM.
 
 ## Phase 0 — already active (do nothing extra)
 Every `/api/agent/prompt` call logs: prompt, roles, which context
-sources were used (labels only), which tools were called, response
-type/render kind, and latency. This starts accumulating from day one —
-intentionally, so you never have a gap to backfill later.
+sources were used (labels only), which tools were called (with their
+real arguments), response type/render kind, and latency. This starts
+accumulating from day one — intentionally, so you never have a gap to
+backfill later.
+
+A second, parallel table, `rule_evaluations` (see
+`core/businessRuleEngine.ts` / `core/ruleOutcomeLogger.ts`), logs every
+business-rule check — which rule fired, whether it blocked or just
+warned, on what arguments — as rule coverage grows past the CRM/Lead
+starter set. Same safe-no-op-without-`DATABASE_URL` behavior, same
+"never delete casually" status as `interaction_log`.
 
 **Action now**: nothing code-wise. Just don't skip setting `DATABASE_URL`
 once you deploy — the logger is a safe no-op without it, which is

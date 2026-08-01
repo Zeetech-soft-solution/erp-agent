@@ -343,38 +343,83 @@ Hand-writing a `modules/<name>/index.ts` per entity doesn't scale to
 "all of ERPNext" — and it especially doesn't scale to "ERPNext today,
 SAP tomorrow." `core/entityModuleFactory.ts` generates
 `list/get/create/update` tools for any canonical entity from a
-declarative config. That config is now organized around the standard
-ERP module taxonomy most mainstream ERPs echo in some form — CRM,
-Selling, Buying, Stock, Accounting, HR, Manufacturing, Projects —
-split one file per module for fast, low-scroll editing:
+declarative config. That config is organized around the standard ERP
+module taxonomy most mainstream ERPs echo in some form — CRM, Selling,
+Buying, Stock, Accounting, HR, Manufacturing, Projects, Assets, Quality
+Management — one real folder per module (`config/modules/<name>/`),
+each holding that module's entities, business rules, and
+training-curation metadata together:
 
 ```
-config/modules/crm.entities.ts           config/modules/hr.entities.ts
-config/modules/selling.entities.ts       config/modules/manufacturing.entities.ts
-config/modules/buying.entities.ts        config/modules/projects.entities.ts
-config/modules/stock.entities.ts         config/modules/accounting.entities.ts
-config/entities.config.ts   <- imports + spreads all of the above,
-                                rarely needs editing itself
+config/modules/crm/{entities,rules,training}.ts
+config/modules/selling/{entities,rules,training}.ts
+config/modules/buying/{entities,rules,training}.ts
+config/modules/stock/{entities,rules,training}.ts
+config/modules/accounting/{entities,rules,training}.ts
+config/modules/hr/{entities,rules,training}.ts
+config/modules/manufacturing/{entities,rules,training}.ts
+config/modules/projects/{entities,rules,training}.ts
+config/modules/assets/{entities,rules,training}.ts
+config/modules/quality/{entities,rules,training}.ts
+
+config/entities.config.ts   <- imports + spreads every module's entities.ts
+config/rules.config.ts      <- imports + spreads every module's rules.ts
+config/training.config.ts   <- imports + spreads every module's training.ts
+                                (none of the three aggregators need editing themselves)
 
 erpnext/entityMaps/<same-module-names>.ts  <- ERPNext-specific mirror,
                                 one file per module, each resolving
                                 that module's canonical entityKeys to
-                                ERPNext doctypes + native field names
+                                ERPNext doctypes + native field names.
+                                Deliberately NOT inside config/modules/ —
+                                this is the one thing kept ERP-specific
+                                and separate from the canonical folder,
+                                so a future sap/entityMaps/ can mirror
+                                it without touching canonical config.
 erpnext/entityMap.ts        <- imports + spreads all of the above
 ```
 
+Only `crm` and `selling` have real `rules.ts`/`training.ts` content
+today — the rest are present as empty/stub files so every module's
+folder shape is complete and consistent from day one, ready for
+deeper (pro-tier) coverage without restructuring later. Each existing
+module's `entities.ts` also covers a bit more than its headline
+doctype (e.g. HR includes Payroll's Salary Slip and Recruitment's Job
+Opening alongside Employee/Leave/Attendance; Manufacturing includes Job
+Card and Production Plan alongside BOM/Work Order) — still just
+canonical entity shape, no rules/training depth, for the 6 modules
+that aren't crm/selling.
+
+Support and Email are deliberately **not** part of this taxonomy today.
+They exist only as hand-written, external-system stubs
+(`src/modules/tickets/`, `src/modules/email/` — read `tickets.list`/
+`email.list`/`email.draft`'s doc comments: they're meant to integrate
+an *external* helpdesk/mailbox, not ERPNext's own Issue/Communication
+doctypes). More `config/modules/<name>/` folders can be added the same
+way as this session's Assets/Quality additions once there's an actual
+requirement for them.
+
 **To adjust one module's schema** — say ERPNext renames a field, or
 you want to add a new doctype to Buying — open exactly
-`config/modules/buying.entities.ts` (canonical shape) and
+`config/modules/buying/entities.ts` (canonical shape) and
 `erpnext/entityMaps/buying.ts` (ERPNext-specific translation). Nothing
 else in the system needs to change or even be aware the edit happened;
 the tool description handed to the LLM, the role policy, the gateway,
 the renderer are all identical before and after.
 
+**To add real business-rule coverage to a module**: fill in its
+`config/modules/<name>/rules.ts` following `crm/rules.ts` or
+`selling/rules.ts`'s shape — no gateway or module-registration change
+needed. `core/entityModuleFactory.ts` tags every generated create/
+update tool with its `entityKey` automatically, so
+`core/businessRuleEngine.ts` picks up a newly-populated `RuleSet`
+immediately; entities with no rules registered simply get a no-op
+check.
+
 **To add a new module entirely**: create
-`config/modules/<name>.entities.ts` and
-`erpnext/entityMaps/<name>.ts` following the existing files' shape,
-import + spread both into their respective aggregators. That's the
+`config/modules/<name>/{entities,rules,training}.ts` and
+`erpnext/entityMaps/<name>.ts` following the existing modules' shape,
+import + spread all four into their respective aggregators. That's the
 whole change.
 
 Keep hand-written modules (like `crm/`'s `lead` entity) for anything

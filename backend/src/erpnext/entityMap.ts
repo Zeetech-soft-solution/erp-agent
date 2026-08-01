@@ -7,6 +7,8 @@ import { ACCOUNTING_MAP } from "./entityMaps/accounting";
 import { HR_MAP } from "./entityMaps/hr";
 import { MANUFACTURING_MAP } from "./entityMaps/manufacturing";
 import { PROJECTS_MAP } from "./entityMaps/projects";
+import { ASSETS_MAP } from "./entityMaps/assets";
+import { QUALITY_MAP } from "./entityMaps/quality";
 
 export type { ErpNextEntityMapping };
 
@@ -34,7 +36,21 @@ export const ERPNEXT_ENTITY_MAP: Record<string, ErpNextEntityMapping> = {
   ...HR_MAP,
   ...MANUFACTURING_MAP,
   ...PROJECTS_MAP,
+  ...ASSETS_MAP,
+  ...QUALITY_MAP,
 };
+
+/** Reverse of ERPNEXT_ENTITY_MAP's entityKey -> doctype, e.g. "Lead" ->
+ *  "lead". Lets ERPNext-facing entry points (like an inbound webhook,
+ *  which only knows the doctype it fired for) resolve back to a
+ *  canonical entityKey without ever hardcoding a doctype name. */
+const DOCTYPE_TO_ENTITY_KEY: Record<string, string> = Object.fromEntries(
+  Object.entries(ERPNEXT_ENTITY_MAP).map(([entityKey, mapping]) => [mapping.doctype, entityKey])
+);
+
+export function entityKeyForDoctype(doctype: string): string | undefined {
+  return DOCTYPE_TO_ENTITY_KEY[doctype];
+}
 
 export function nativeFields(entityKey: string): string[] {
   const mapping = ERPNEXT_ENTITY_MAP[entityKey];
@@ -48,7 +64,11 @@ export function toNativeData(entityKey: string, canonicalData: Record<string, an
   const out: Record<string, any> = {};
   for (const [canonical, value] of Object.entries(canonicalData)) {
     const native = mapping.fieldMap[canonical];
-    if (native) out[native] = value;
+    if (native) {
+      out[native] = value;
+    } else {
+      console.warn(`[entityMap] "${canonical}" has no native mapping for "${entityKey}" — ignored`);
+    }
   }
   return out;
 }

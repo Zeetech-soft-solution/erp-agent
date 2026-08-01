@@ -1,4 +1,4 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
 /** Accounting module. */
 export const ACCOUNTING_ENTITIES: EntityConfig[] = [
@@ -25,5 +25,13 @@ export const ACCOUNTING_ENTITIES: EntityConfig[] = [
     canonicalFields: ["id", "display_name", "type"],
     operations: ["list", "get"],
     description: "Chart of accounts",
+  },
+  {
+    entityKey: "cost_center",
+    module: "accounting",
+    toolPrefix: "cost_center",
+    canonicalFields: ["id", "display_name", "is_group"],
+    operations: ["list", "get"],
+    description: "Cost centers for expense/revenue tracking",
   },
 ];

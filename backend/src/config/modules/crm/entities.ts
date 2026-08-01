@@ -1,7 +1,8 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
-/** CRM module. "lead" itself is hand-written in modules/crm/ (has real
- *  business logic beyond CRUD) — these are its generic siblings. */
+/** CRM module. "lead" itself is hand-written in src/modules/crm/ (not
+ *  this config/modules/crm/ folder — has real business logic beyond
+ *  CRUD) — these are its generic siblings. */
 export const CRM_ENTITIES: EntityConfig[] = [
   {
     entityKey: "customer",

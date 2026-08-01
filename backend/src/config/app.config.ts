@@ -37,6 +37,10 @@ export const appConfig = {
     baseUrl: process.env.ERPNEXT_BASE_URL || "",
     apiKey: process.env.ERPNEXT_API_KEY || "",
     apiSecret: process.env.ERPNEXT_API_SECRET || "",
+    // Verifies the X-Frappe-Webhook-Signature header on inbound
+    // /api/webhooks/erpnext/:doctype calls (see routes/webhooks.routes.ts)
+    // — must match the "Webhook Secret" set on the ERPNext Webhook record.
+    webhookSecret: process.env.ERPNEXT_WEBHOOK_SECRET || "",
   },
 
   jwt: {

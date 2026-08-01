@@ -29,6 +29,7 @@ export const api = {
   logout: () => request("/api/auth/logout", { method: "POST" }),
   prompt: (prompt: string) => request("/api/agent/prompt", { method: "POST", body: JSON.stringify({ prompt }) }),
   capabilities: () => request("/api/agent/capabilities"),
+  alerts: () => request("/api/agent/alerts"),
   setToken: (token: string) => localStorage.setItem("erp_agent_token", token),
   clearToken: () => localStorage.removeItem("erp_agent_token"),
   isLoggedIn: () => !!getToken(),

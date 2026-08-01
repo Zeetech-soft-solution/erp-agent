@@ -81,7 +81,7 @@ export class ErpNextConnector implements SystemConnector {
     return (res.data.message || []).map((r: any) => r.role);
   }
 
-  async list(entityKey: string, credential: UserCredential, params?: { filters?: Record<string, any>; limit?: number }): Promise<any[]> {
+  async list(entityKey: string, credential: UserCredential, params?: { filters?: Record<string, any>; limit?: number; offset?: number }): Promise<any[]> {
     const mapping = ERPNEXT_ENTITY_MAP[entityKey];
     const client = this.clientFor(credential);
     const nativeFilters = params?.filters ? toNativeData(entityKey, params.filters) : undefined;
@@ -89,8 +89,9 @@ export class ErpNextConnector implements SystemConnector {
       mapping.doctype,
       {
         fields: JSON.stringify(nativeFields(entityKey)),
-        filters: nativeFilters ? JSON.stringify(Object.entries(nativeFilters).map(([k, v]) => [k, "=", v])) : undefined,
-        limit_page_length: params?.limit || 50,
+        filters: nativeFilters ? JSON.stringify(Object.entries(nativeFilters).map(([k, v]) => toFilterTriple(k, v))) : undefined,
+        limit_page_length: params?.limit || 100,
+        limit_start: params?.offset || 0,
       },
       client
     );
@@ -157,4 +158,15 @@ export class ErpNextConnector implements SystemConnector {
       return obj;
     });
   }
+}
+
+/** A filter value is either a raw value (implicit "=") or an explicit
+ *  { op, value } pair — lets callers ask for "like"/"in"/range filters
+ *  instead of everything silently collapsing to an exact match. */
+type FilterOp = "=" | "!=" | "like" | "in" | ">" | "<" | ">=" | "<=";
+function toFilterTriple(field: string, raw: any): [string, FilterOp, any] {
+  if (raw && typeof raw === "object" && !Array.isArray(raw) && "op" in raw) {
+    return [field, raw.op as FilterOp, raw.value];
+  }
+  return [field, "=", raw];
 }

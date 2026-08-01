@@ -8,6 +8,7 @@ import { OpenAIProvider } from "../providers/llm/openaiProvider";
 import { PostgresInteractionLogger } from "../core/interactionLogger";
 import { listAllowedTools } from "../core/gateway";
 import { asyncHandler } from "../core/asyncHandler";
+import { alertStore } from "../core/alertStore";
 
 const engine = new ReasoningEngine(
   new OpenAIProvider(),
@@ -25,6 +26,10 @@ router.post("/prompt", asyncHandler(async (req: AuthedRequest, res) => {
   sessionCacheProvider.addTurn(req.session!.sub, { prompt, summary: response.message.slice(0, 300) });
   res.json(response);
 }));
+
+router.get("/alerts", (req: AuthedRequest, res) => {
+  res.json({ alerts: alertStore.drain(req.session!.sub) });
+});
 
 router.get("/capabilities", (req: AuthedRequest, res) => {
   const tools = listAllowedTools(req.session!);

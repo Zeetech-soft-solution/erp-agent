@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import { ChatTurn } from "../api/types";
+import { Alert, ChatTurn } from "../api/types";
 import { ResponseView } from "../components/ResponseView";
 import { DetailPanel } from "../components/DetailPanel";
 import { Composer } from "../components/Composer";
@@ -12,9 +12,37 @@ import { Composer } from "../components/Composer";
  * code path. That's the "same site initializes mobile and desktop"
  * requirement from the brief.
  */
+function alertToTurn(alert: Alert): ChatTurn {
+  return {
+    id: alert.id,
+    prompt: "",
+    isAlert: true,
+    response: { type: "text", message: alert.message, meta: { modules_used: [], tools_used: [], role_context: [] } },
+  };
+}
+
 export function Chat() {
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [sending, setSending] = useState(false);
+
+  // Polls for proactive alerts (an ERPNext webhook today — see
+  // routes/webhooks.routes.ts) since chat is otherwise pure request/
+  // response with nothing pushing into an already-open tab. 15s is a
+  // deliberate compromise: no persistent connection or deployment
+  // change needed, at the cost of not being instant.
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const { alerts } = await api.alerts();
+        if (alerts?.length) {
+          setTurns((prev) => [...prev, ...alerts.map(alertToTurn)]);
+        }
+      } catch {
+        // Transient network/auth hiccup — just try again next tick.
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   async function send(prompt: string) {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -56,20 +84,26 @@ export function Chat() {
                 Ask me about leads, opportunities, orders, or anything else your role has access to.
               </div>
             )}
-            {turns.map((t) => (
-              <div key={t.id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div className="turn self-end">
-                  <div className="bubble-user">{t.prompt}</div>
+            {turns.map((t) =>
+              t.isAlert ? (
+                <div key={t.id} className="turn self-end">
+                  <div className="bubble-alert">{t.response?.message}</div>
                 </div>
-                <div className="turn">
-                  {t.pending ? (
-                    <div className="bubble-agent pending">Thinking…</div>
-                  ) : (
-                    t.response && <ResponseView response={t.response} onNextStep={send} />
-                  )}
+              ) : (
+                <div key={t.id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div className="turn">
+                    <div className="bubble-user">{t.prompt}</div>
+                  </div>
+                  <div className="turn self-end">
+                    {t.pending ? (
+                      <div className="bubble-agent pending">Thinking…</div>
+                    ) : (
+                      t.response && <ResponseView response={t.response} onNextStep={send} />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
           <Composer onSend={send} disabled={sending} />
         </div>

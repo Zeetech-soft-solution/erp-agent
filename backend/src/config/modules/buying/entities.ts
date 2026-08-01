@@ -1,4 +1,4 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
 /** Buying module — procurement side, mirrors Selling's shape. */
 export const BUYING_ENTITIES: EntityConfig[] = [
@@ -25,5 +25,21 @@ export const BUYING_ENTITIES: EntityConfig[] = [
     canonicalFields: ["id", "supplier", "status", "total", "due_date"],
     operations: ["list", "get"],
     description: "Purchase invoices (bills)",
+  },
+  {
+    entityKey: "request_for_quotation",
+    module: "buying",
+    toolPrefix: "rfq",
+    canonicalFields: ["id", "status", "date"],
+    operations: ["list", "get"],
+    description: "Requests for quotation sent to suppliers",
+  },
+  {
+    entityKey: "supplier_quotation",
+    module: "buying",
+    toolPrefix: "supplier_quotation",
+    canonicalFields: ["id", "supplier", "status", "total"],
+    operations: ["list", "get"],
+    description: "Quotations received back from suppliers",
   },
 ];

@@ -32,6 +32,12 @@ export interface ToolDefinition {
   module: string;
   parameters?: Record<string, any>; // JSON schema for LLM tool-calling
   handler: (args: any, session: Session) => Promise<any>;
+  // Opt a tool into business-rule enforcement (see core/businessRuleEngine.ts).
+  // Left undefined for tools with no registered RuleSet — gateway.ts skips
+  // the check entirely for those, so this is additive and never breaks an
+  // existing tool that doesn't opt in.
+  entityKey?: string;
+  ruleAction?: "create" | "update";
 }
 
 // ---- MCP Module (the unit you add to extend the system) ----
@@ -160,7 +166,7 @@ export interface SystemConnector {
    *  credential since it's not a business transaction. */
   getUserRoles(identifier: string): Promise<string[]>;
 
-  list(entityKey: string, credential: UserCredential, params?: { filters?: Record<string, any>; limit?: number }): Promise<any[]>;
+  list(entityKey: string, credential: UserCredential, params?: { filters?: Record<string, any>; limit?: number; offset?: number }): Promise<any[]>;
   get(entityKey: string, credential: UserCredential, id: string): Promise<any>;
   create(entityKey: string, credential: UserCredential, canonicalData: Record<string, any>): Promise<any>;
   update(entityKey: string, credential: UserCredential, id: string, canonicalData: Record<string, any>): Promise<any>;
@@ -228,5 +234,63 @@ export interface WorkflowDefinition {
   statusField: string;             // canonical field holding current state, e.g. "status"
   transitions: WorkflowTransition[];
   description?: string;
+}
+
+// ---- Business rules — THE universal pattern behind "does this action
+// conform to normal business practice for this kind of record," as
+// distinct from WorkflowTransition (which only governs status changes).
+// Same domain-blind discipline as EntityConfig/WorkflowDefinition: a
+// rule only ever sees canonical fields and the acting session, never an
+// ERP-specific field or doctype name. config/rules/<module>.rules.ts is
+// where a real deployment describes what "normal practice" actually
+// means for each entity/action; this file only describes the shape.
+export interface RuleViolation {
+  ruleId: string;
+  message: string;
+  blocking: boolean;               // true = the action is refused; false = allowed, but flagged
+}
+
+export interface BusinessRule {
+  id: string;                      // unique within the entity's rule set, e.g. "lead.require_contact_method"
+  action: "create" | "update";
+  description?: string;
+  /** Return a RuleViolation if the rule is broken, or null if it's satisfied.
+   *  `current` is the entity's existing state, only present on "update". */
+  check(args: Record<string, any>, session: Session, current?: Record<string, any>): Promise<RuleViolation | null> | RuleViolation | null;
+}
+
+export interface RuleSet {
+  entityKey: string;                // which canonical entity these rules govern
+  rules: BusinessRule[];
+}
+
+// ---- Alerts — a proactive, non-conversational notification pushed
+// into a signed-in user's chat, originating from outside a prompt/
+// response turn (today: an inbound ERPNext webhook — see
+// routes/webhooks.routes.ts / core/alertStore.ts). Deliberately not an
+// AgentResponse: it never went through the reasoning engine, has no
+// tool calls, and is targeted at a specific user rather than being a
+// reply to their own message.
+export interface Alert {
+  id: string;
+  entityKey: string;                // canonical entity the alert is about, e.g. "lead"
+  recordId: string;                 // canonical id of that record
+  message: string;                  // short, human-readable, already rendered
+  createdAt: string;
+}
+
+// ---- Per-module training curation metadata — gives a concrete home to
+// what docs/TRAINING_PLAN.md's governance notes already call for
+// ("strip/pseudonymize customer-identifying fields," "retention policy
+// per role/module") but never had a per-module file for. Not consumed
+// by any runtime path today — it's structured data for the curation/
+// export tooling TRAINING_PLAN.md's Phase 2 describes, not logging
+// logic (that stays centralized in interaction_log/rule_evaluations
+// regardless of module).
+export interface ModuleTrainingConfig {
+  module: string;
+  pseudonymizeFields: string[];      // canonical fields to strip/mask before any fine-tuning export
+  retentionDays?: number;            // override for this module's logged rows; omit = no override
+  notes?: string;
 }
 

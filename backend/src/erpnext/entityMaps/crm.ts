@@ -3,7 +3,10 @@ import { ErpNextEntityMapModule } from "./types";
 export const CRM_MAP: ErpNextEntityMapModule = {
   lead: {
     doctype: "Lead",
-    fieldMap: { id: "name", display_name: "lead_name", email: "email_id", phone: "mobile_no", status: "status" },
+    fieldMap: {
+      id: "name", display_name: "lead_name", email: "email_id", phone: "mobile_no", status: "status",
+      source: "source", owner: "lead_owner", company: "company_name", created: "creation",
+    },
   },
   customer: {
     doctype: "Customer",

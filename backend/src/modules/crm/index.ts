@@ -13,10 +13,18 @@ export const crmModule: MCPModule = {
   tools: [
     {
       name: "crm.list_leads",
-      description: "List leads, optionally filtered by status",
+      description: "List leads, optionally filtered by status, source, owner, company, or creation date",
       module: "crm",
-      parameters: { type: "object", properties: { filters: { type: "object" } } },
-      handler: (args, session) => systemConnector.list("lead", session.credential, { filters: args?.filters }),
+      parameters: {
+        type: "object",
+        properties: {
+          filters: { type: "object" },
+          limit: { type: "number", description: "Max rows to return (default 100)" },
+          offset: { type: "number", description: "Rows to skip, for paging past the first page" },
+        },
+      },
+      handler: (args, session) =>
+        systemConnector.list("lead", session.credential, { filters: args?.filters, limit: args?.limit, offset: args?.offset }),
     },
     {
       name: "crm.get_lead",
@@ -29,6 +37,8 @@ export const crmModule: MCPModule = {
       name: "crm.create_lead",
       description: "Create a new lead",
       module: "crm",
+      entityKey: "lead",
+      ruleAction: "create",
       parameters: { type: "object", properties: { display_name: { type: "string" }, email: { type: "string" }, phone: { type: "string" } }, required: ["display_name"] },
       handler: (args, session) => systemConnector.create("lead", session.credential, args),
     },
@@ -36,6 +46,8 @@ export const crmModule: MCPModule = {
       name: "crm.update_lead_status",
       description: "Update a lead's status",
       module: "crm",
+      entityKey: "lead",
+      ruleAction: "update",
       parameters: { type: "object", properties: { id: { type: "string" }, status: { type: "string" } }, required: ["id", "status"] },
       handler: (args, session) => systemConnector.update("lead", session.credential, args.id, { status: args.status }),
     },

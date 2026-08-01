@@ -1,4 +1,4 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
 /** Stock/inventory module. */
 export const STOCK_ENTITIES: EntityConfig[] = [
@@ -25,5 +25,21 @@ export const STOCK_ENTITIES: EntityConfig[] = [
     canonicalFields: ["id", "customer", "status", "date"],
     operations: ["list", "get"],
     description: "Outbound goods delivery documents",
+  },
+  {
+    entityKey: "stock_entry",
+    module: "stock",
+    toolPrefix: "stock_entry",
+    canonicalFields: ["id", "entry_type", "status", "date"],
+    operations: ["list", "get"],
+    description: "Internal stock movements (transfer, receipt, issue, manufacture)",
+  },
+  {
+    entityKey: "material_request",
+    module: "stock",
+    toolPrefix: "material_request",
+    canonicalFields: ["id", "request_type", "status", "date"],
+    operations: ["list", "get"],
+    description: "Internal requests to purchase or transfer material",
   },
 ];

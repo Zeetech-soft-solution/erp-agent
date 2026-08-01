@@ -1,4 +1,4 @@
-import { EntityConfig } from "../../core/types";
+import { EntityConfig } from "../../../core/types";
 
 /** HR module. */
 export const HR_ENTITIES: EntityConfig[] = [
@@ -25,5 +25,21 @@ export const HR_ENTITIES: EntityConfig[] = [
     canonicalFields: ["id", "employee", "date", "status"],
     operations: ["list", "get"],
     description: "Daily attendance records",
+  },
+  {
+    entityKey: "salary_slip",
+    module: "hr",
+    toolPrefix: "salary_slip",
+    canonicalFields: ["id", "employee", "status", "net_pay", "start_date", "end_date"],
+    operations: ["list", "get"],
+    description: "Payroll — an employee's salary slip for a pay period",
+  },
+  {
+    entityKey: "job_opening",
+    module: "hr",
+    toolPrefix: "job_opening",
+    canonicalFields: ["id", "display_name", "department", "status"],
+    createFields: ["display_name", "department"],
+    description: "Recruitment — open positions",
   },
 ];
